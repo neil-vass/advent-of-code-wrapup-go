@@ -12,3 +12,12 @@ func TestParseCharacter(t *testing.T) {
 		t.Errorf("ParseCharacter()=%v, want %v", got, want)
 	}
 }
+
+func TestBossBattle(t *testing.T) {
+	player := Character{hp: 8, damage: 5, armour: 5}
+	boss := Character{hp: 12, damage: 7, armour: 2}
+
+	if !PlayerWins(player, boss) {
+		t.Error("Expected player to win, but they lost!")
+	}
+}
