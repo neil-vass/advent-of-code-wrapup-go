@@ -14,9 +14,23 @@ var puzzleData string
 func main() {
 	var target int
 	input.Parse(regexp.MustCompile(`^(\d+)\n$`), puzzleData, &target)
-	fmt.Printf("Part 1: %d\n", target)
+	fmt.Printf("Part 1: %d\n", Find(target))
 }
 
+func Find(target int) int {
+	i := 100_000
+	for {
+		if i%100_000 == 0 {
+			fmt.Println("Testing", i)
+		}
+
+		if Deliveries(i) >= target {
+			return i
+		}
+
+		i++
+	}
+}
 func Deliveries(house int) int {
 	var count int
 	for _, factor := range FactorsOf(house) {
