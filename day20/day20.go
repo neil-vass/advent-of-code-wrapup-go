@@ -20,14 +20,9 @@ func main() {
 func Find(target int) int {
 	i := 100_000
 	for {
-		if i%100_000 == 0 {
-			fmt.Println("Testing", i)
-		}
-
 		if Deliveries(i) >= target {
 			return i
 		}
-
 		i++
 	}
 }
