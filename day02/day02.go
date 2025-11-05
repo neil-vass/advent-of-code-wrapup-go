@@ -50,7 +50,7 @@ func Solve(lines iter.Seq[string], calc func(Present) int) int {
 }
 
 func main() {
-	fmt.Printf("Part 1: %d\n", Solve(input.Lines(puzleInput), PaperNeeded))
-	fmt.Printf("Part 2: %d\n", Solve(input.Lines(puzleInput), RibbonNeeded))
+	fmt.Printf("Part 1: %d\n", Solve(input.SplitIntoLines(puzleInput), PaperNeeded))
+	fmt.Printf("Part 2: %d\n", Solve(input.SplitIntoLines(puzleInput), RibbonNeeded))
 
 }

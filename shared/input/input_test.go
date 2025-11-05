@@ -9,7 +9,7 @@ import (
 )
 
 func TestLines(t *testing.T) {
-	lines := Lines("one\ntwo\n")
+	lines := SplitIntoLines("one\ntwo\n")
 
 	got := [2]string{}
 	i := 0
