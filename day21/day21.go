@@ -9,6 +9,15 @@ import (
 
 type Character struct{ hp, damage, armour int }
 
+type Item struct{ cost, damage, armour int }
+type Shop map[string]map[string]Item
+type ShoppingPlan map[string]struct{ min, max int }
+
+type ShoppingOptions []struct {
+	spent        int
+	equippedChar Character
+}
+
 var charRe = regexp.MustCompile(`^Hit Points: (\d+)\nDamage: (\d+)\nArmor: (\d+)\n$`)
 
 func ParseCharacter(s string) Character {
@@ -25,4 +34,13 @@ func PlayerWins(player, boss Character) bool {
 	roundPlayerDies := math.Ceil(float64(player.hp) / float64(bossDPR))
 
 	return roundPlayerDies >= roundBossDies
+}
+
+func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) ShoppingOptions {
+	options := ShoppingOptions{}
+
+	// for k, v := range plan {
+
+	// }
+	return options
 }
