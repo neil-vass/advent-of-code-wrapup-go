@@ -16,3 +16,27 @@ func main() {
 	input.Parse(regexp.MustCompile(`^(\d+)\n$`), puzzleData, &target)
 	fmt.Printf("Part 1: %d\n", target)
 }
+
+func Deliveries(house int) int {
+	var count int
+	for _, factor := range FactorsOf(house) {
+		count += 10 * factor
+	}
+	return count
+}
+
+func FactorsOf(house int) []int {
+	factors := []int{1}
+	for n := 2; n*n <= house; n++ {
+		if house%n == 0 {
+			factors = append(factors, n)
+			if n != house/n {
+				factors = append(factors, house/n)
+			}
+		}
+	}
+	if house != 1 {
+		factors = append(factors, house)
+	}
+	return factors
+}
