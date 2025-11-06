@@ -1,37 +1,40 @@
 package main
 
 import (
+	"maps"
 	"math"
 	"regexp"
+	"slices"
 
 	"github.com/neil-vass/advent-of-code-2015-go/shared/input"
 )
 
-type Character struct{ hp, damage, armour int }
+type Character struct{ HP, Damage, Armour int }
 
-type Item struct{ cost, damage, armour int }
+type Item struct{ Cost, Damage, Armour int }
 type Shop map[string]map[string]Item
-type ShoppingPlan map[string]struct{ min, max int }
+type ShoppingPlan map[string]struct{ Min, Max int }
 
-type ShoppingOptions []struct {
-	spent        int
-	equippedChar Character
+type Foo struct {
+	Spent        int
+	EquippedChar Character
 }
+type ShoppingOptions []Foo
 
 var charRe = regexp.MustCompile(`^Hit Points: (\d+)\nDamage: (\d+)\nArmor: (\d+)\n$`)
 
 func ParseCharacter(s string) Character {
 	c := Character{}
-	input.Parse(charRe, s, &c.hp, &c.damage, &c.armour)
+	input.Parse(charRe, s, &c.HP, &c.Damage, &c.Armour)
 	return c
 }
 
 func PlayerWins(player, boss Character) bool {
-	playerDPR := max(player.damage-boss.armour, 1)
-	roundBossDies := math.Ceil(float64(boss.hp) / float64(playerDPR))
+	playerDPR := max(player.Damage-boss.Armour, 1)
+	roundBossDies := math.Ceil(float64(boss.HP) / float64(playerDPR))
 
-	bossDPR := max(boss.damage-player.armour, 1)
-	roundPlayerDies := math.Ceil(float64(player.hp) / float64(bossDPR))
+	bossDPR := max(boss.Damage-player.Armour, 1)
+	roundPlayerDies := math.Ceil(float64(player.HP) / float64(bossDPR))
 
 	return roundPlayerDies >= roundBossDies
 }
@@ -39,9 +42,28 @@ func PlayerWins(player, boss Character) bool {
 func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) ShoppingOptions {
 	options := ShoppingOptions{}
 
-	// for k, v := range plan {
+	collector := [][][]Item{}
+	for k, v := range shop {
+		values := slices.Collect(maps.Values(v))
+		optionsForThisKey := Combinations(values, plan[k].Min, plan[k].Max)
+		collector = append(collector, optionsForThisKey)
+	}
 
-	// }
+	allPurchasePlans := Product(collector...)
+
+	for _, p := range allPurchasePlans {
+		equippedChar := char
+		spent := 0
+		for _, itemsOfOneType := range p {
+			for _, item := range itemsOfOneType {
+				spent += item.Cost
+				equippedChar.Damage += item.Damage
+				equippedChar.Armour += item.Armour
+			}
+		}
+		options = append(options, Foo{Spent: spent, EquippedChar: equippedChar})
+	}
+
 	return options
 }
 
@@ -98,4 +120,21 @@ func combinationsOfLengthR[T any](pool []T, r int) [][]T {
 		}
 		combos = append(combos, getCombo())
 	}
+}
+
+// I'm missing Python's itertools.combinations().
+// Made this function by following its pseudocde:
+// https://docs.python.org/3.7/library/itertools.html#itertools.product
+func Product[T any](pools ...[]T) [][]T {
+	result := [][]T{{}}
+	for _, pool := range pools {
+		updatedResult := [][]T{}
+		for _, x := range result {
+			for _, y := range pool {
+				updatedResult = append(updatedResult, append(x, y))
+			}
+		}
+		result = updatedResult
+	}
+	return result
 }
