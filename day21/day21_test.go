@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestParseCharacter(t *testing.T) {
@@ -47,16 +48,18 @@ func TestShopping(t *testing.T) {
 	player := Character{HP: 1, Damage: 0, Armour: 0}
 	got := LetsGoShopping(player, fakeShop(), fakeShoppingPlan())
 
-	// TODO: I don't care about order of these, but cmp.Diff on slices is order-dependent.
-	// Is there an option to ignore order? Or should I convert both to maps (sets) here?
 	want := ShoppingOptions{
-		{Spent: 10, EquippedChar: Character{1, 5, 0}},
-		{Spent: 23, EquippedChar: Character{1, 5, 1}},
 		{Spent: 8, EquippedChar: Character{1, 4, 0}},
 		{Spent: 21, EquippedChar: Character{1, 4, 1}},
+		{Spent: 10, EquippedChar: Character{1, 5, 0}},
+		{Spent: 23, EquippedChar: Character{1, 5, 1}},
 	}
 
-	diff := cmp.Diff(want, got)
+	// Order got and want for comparison.
+	// This works because every entry has a different Spent.
+	less := func(a, b Foo) bool { return a.Spent < b.Spent }
+
+	diff := cmp.Diff(want, got, cmpopts.SortSlices(less))
 	if diff != "" {
 		t.Errorf("Contents mismatch (-want +got):\n%s", diff)
 	}
