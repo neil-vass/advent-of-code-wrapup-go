@@ -24,9 +24,8 @@ func TestPlayerWins(t *testing.T) {
 	}
 }
 
-func TestShopping(t *testing.T) {
-	player := Character{HP: 100, Damage: 0, Armour: 0}
-	shop := Shop{
+func fakeShop() Shop {
+	return Shop{
 		"Weapons": {
 			"Dagger":     {Cost: 8, Damage: 4, Armour: 0},
 			"Shortsword": {Cost: 10, Damage: 5, Armour: 0},
@@ -35,22 +34,42 @@ func TestShopping(t *testing.T) {
 			"Leather": {Cost: 13, Damage: 0, Armour: 1},
 		},
 	}
-	plan := ShoppingPlan{
+}
+
+func fakeShoppingPlan() ShoppingPlan {
+	return ShoppingPlan{
 		"Weapons": {Min: 1, Max: 1},
 		"Armour":  {Min: 0, Max: 1},
 	}
-	got := LetsGoShopping(player, shop, plan)
+}
 
+func TestShopping(t *testing.T) {
+	player := Character{HP: 1, Damage: 0, Armour: 0}
+	got := LetsGoShopping(player, fakeShop(), fakeShoppingPlan())
+
+	// TODO: I don't care about order of these, but cmp.Diff on slices is order-dependent.
+	// Is there an option to ignore order? Or should I convert both to maps (sets) here?
 	want := ShoppingOptions{
-		{Spent: 8, EquippedChar: Character{100, 4, 0}},
-		{Spent: 21, EquippedChar: Character{100, 4, 1}},
-		{Spent: 10, EquippedChar: Character{100, 5, 0}},
-		{Spent: 23, EquippedChar: Character{100, 5, 1}},
+		{Spent: 10, EquippedChar: Character{1, 5, 0}},
+		{Spent: 23, EquippedChar: Character{1, 5, 1}},
+		{Spent: 8, EquippedChar: Character{1, 4, 0}},
+		{Spent: 21, EquippedChar: Character{1, 4, 1}},
 	}
 
 	diff := cmp.Diff(want, got)
 	if diff != "" {
 		t.Errorf("Contents mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSolvePart1(t *testing.T) {
+	player := Character{HP: 1, Damage: 0, Armour: 0}
+	boss := Character{HP: 5, Damage: 100, Armour: 0}
+
+	got := SolvePart1(player, boss, fakeShop(), fakeShoppingPlan())
+	want := 10 // Shortsword means you win in one hit, armour not needed.
+	if got != want {
+		t.Errorf("SolvePart1()=%v, want %v", got, want)
 	}
 }
 

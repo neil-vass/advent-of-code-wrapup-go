@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "embed"
+	"fmt"
 	"maps"
 	"math"
 	"regexp"
@@ -20,6 +22,52 @@ type Foo struct {
 	EquippedChar Character
 }
 type ShoppingOptions []Foo
+
+//go:embed input.txt
+var puzzleData string
+
+func main() {
+	player := Character{HP: 100, Damage: 0, Armour: 0}
+	boss := ParseCharacter(puzzleData)
+
+	shop := Shop{
+		"Weapons": {
+			"Dagger":     {Cost: 8, Damage: 4, Armour: 0},
+			"Shortsword": {10, 5, 0},
+			"Warhammer":  {25, 6, 0},
+			"Longsword":  {40, 7, 0},
+			"Greataxe":   {74, 8, 0},
+		},
+		"Armour": {
+			"Leather":    {13, 0, 1},
+			"Chainmail":  {31, 0, 2},
+			"Splintmail": {53, 0, 3},
+			"Bandedmail": {75, 0, 4},
+			"Platemail":  {102, 0, 5},
+		},
+		"Rings": {
+			"Damage +1":  {25, 1, 0},
+			"Damage +2":  {50, 2, 0},
+			"Damage +3":  {100, 3, 0},
+			"Defense +1": {20, 0, 1},
+			"Defense +2": {40, 0, 2},
+			"Defense +3": {80, 0, 3},
+		},
+	}
+
+	plan := ShoppingPlan{
+		"Weapons": {Min: 1, Max: 1},
+		"Armour":  {Min: 0, Max: 1},
+		"Rings":   {Min: 0, Max: 2},
+	}
+
+	fmt.Printf("Part 1: %v\n", SolvePart1(player, boss, shop, plan))
+}
+
+func SolvePart1(player, boss Character, shop Shop, plan ShoppingPlan) int {
+	options := LetsGoShopping(player, shop, plan)
+	return CheapestWayToWin(options, boss)
+}
 
 var charRe = regexp.MustCompile(`^Hit Points: (\d+)\nDamage: (\d+)\nArmor: (\d+)\n$`)
 
@@ -65,6 +113,16 @@ func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) ShoppingOption
 	}
 
 	return options
+}
+
+func CheapestWayToWin(options ShoppingOptions, boss Character) int {
+	cheapestSoFar := math.MaxInt
+	for _, opt := range options {
+		if PlayerWins(opt.EquippedChar, boss) && opt.Spent < cheapestSoFar {
+			cheapestSoFar = opt.Spent
+		}
+	}
+	return cheapestSoFar
 }
 
 func Combinations[T any](pool []T, min, max int) [][]T {
