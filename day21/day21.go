@@ -98,7 +98,7 @@ func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) []ShoppingOpti
 	collector := [][][]Item{}
 	for k, v := range shop {
 		values := slices.Collect(maps.Values(v))
-		optionsForThisKey := Combinations(values, plan[k].Min, plan[k].Max)
+		optionsForThisKey := CombinationsOfVaryingLength(values, plan[k].Min, plan[k].Max)
 		collector = append(collector, optionsForThisKey)
 	}
 
@@ -140,11 +140,11 @@ func MostExpensiveWayToLose(options []ShoppingOption, boss Character) int {
 	return mostExpensiveSoFar
 }
 
-func Combinations[T any](pool []T, min, max int) [][]T {
+func CombinationsOfVaryingLength[T any](pool []T, min, max int) [][]T {
 
 	combos := [][]T{}
 	for r := min; r <= max; r++ {
-		combos = append(combos, combinationsOfLengthR(pool, r)...)
+		combos = append(combos, Combinations(pool, r)...)
 	}
 	return combos
 }
@@ -153,7 +153,7 @@ func Combinations[T any](pool []T, min, max int) [][]T {
 // Made this function by following its pseudocde:
 // https://docs.python.org/3/library/itertools.html#itertools.combinations
 // The original relies on some Python feautres, making this version harder to follow.
-func combinationsOfLengthR[T any](pool []T, r int) [][]T {
+func Combinations[T any](pool []T, r int) [][]T {
 	combos := [][]T{}
 	n := len(pool)
 	if r > n {

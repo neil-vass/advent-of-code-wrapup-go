@@ -92,7 +92,7 @@ func TestCombinations(t *testing.T) {
 	min := 0
 	max := 2
 
-	got := Combinations(pool, min, max)
+	got := CombinationsOfVaryingLength(pool, min, max)
 	want := [][]int{{}, {0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}}
 
 	diff := cmp.Diff(want, got)
