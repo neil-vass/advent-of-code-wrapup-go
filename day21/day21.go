@@ -62,11 +62,17 @@ func main() {
 	}
 
 	fmt.Printf("Part 1: %v\n", SolvePart1(player, boss, shop, plan))
+	fmt.Printf("Part 2: %v\n", SolvePart2(player, boss, shop, plan))
 }
 
 func SolvePart1(player, boss Character, shop Shop, plan ShoppingPlan) int {
 	options := LetsGoShopping(player, shop, plan)
 	return CheapestWayToWin(options, boss)
+}
+
+func SolvePart2(player, boss Character, shop Shop, plan ShoppingPlan) int {
+	options := LetsGoShopping(player, shop, plan)
+	return MostExpensiveWayToLose(options, boss)
 }
 
 var charRe = regexp.MustCompile(`^Hit Points: (\d+)\nDamage: (\d+)\nArmor: (\d+)\n$`)
@@ -123,6 +129,16 @@ func CheapestWayToWin(options ShoppingOptions, boss Character) int {
 		}
 	}
 	return cheapestSoFar
+}
+
+func MostExpensiveWayToLose(options ShoppingOptions, boss Character) int {
+	mostExpensiveSoFar := -1
+	for _, opt := range options {
+		if !PlayerWins(opt.EquippedChar, boss) && opt.Spent > mostExpensiveSoFar {
+			mostExpensiveSoFar = opt.Spent
+		}
+	}
+	return mostExpensiveSoFar
 }
 
 func Combinations[T any](pool []T, min, max int) [][]T {

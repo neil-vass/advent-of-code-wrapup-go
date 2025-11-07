@@ -73,6 +73,17 @@ func TestSolvePart1(t *testing.T) {
 	}
 }
 
+func TestSolvePart2(t *testing.T) {
+	player := Character{HP: 1, Damage: 0, Armour: 0}
+	boss := Character{HP: 5, Damage: 100, Armour: 0}
+
+	got := SolvePart2(player, boss, fakeShop(), fakeShoppingPlan())
+	want := 21 // Dagger and Leather mean you still die in the first round
+	if got != want {
+		t.Errorf("SolvePart1()=%v, want %v", got, want)
+	}
+}
+
 func TestCombinations(t *testing.T) {
 	pool := []int{0, 1, 2}
 	min := 0
