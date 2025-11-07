@@ -17,11 +17,10 @@ type Item struct{ Cost, Damage, Armour int }
 type Shop map[string]map[string]Item
 type ShoppingPlan map[string]struct{ Min, Max int }
 
-type Foo struct {
+type ShoppingOption struct {
 	Spent        int
 	EquippedChar Character
 }
-type ShoppingOptions []Foo
 
 //go:embed input.txt
 var puzzleData string
@@ -93,8 +92,8 @@ func PlayerWins(player, boss Character) bool {
 	return roundPlayerDies >= roundBossDies
 }
 
-func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) ShoppingOptions {
-	options := ShoppingOptions{}
+func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) []ShoppingOption {
+	options := []ShoppingOption{}
 
 	collector := [][][]Item{}
 	for k, v := range shop {
@@ -115,13 +114,13 @@ func LetsGoShopping(char Character, shop Shop, plan ShoppingPlan) ShoppingOption
 				equippedChar.Armour += item.Armour
 			}
 		}
-		options = append(options, Foo{Spent: spent, EquippedChar: equippedChar})
+		options = append(options, ShoppingOption{Spent: spent, EquippedChar: equippedChar})
 	}
 
 	return options
 }
 
-func CheapestWayToWin(options ShoppingOptions, boss Character) int {
+func CheapestWayToWin(options []ShoppingOption, boss Character) int {
 	cheapestSoFar := math.MaxInt
 	for _, opt := range options {
 		if PlayerWins(opt.EquippedChar, boss) && opt.Spent < cheapestSoFar {
@@ -131,7 +130,7 @@ func CheapestWayToWin(options ShoppingOptions, boss Character) int {
 	return cheapestSoFar
 }
 
-func MostExpensiveWayToLose(options ShoppingOptions, boss Character) int {
+func MostExpensiveWayToLose(options []ShoppingOption, boss Character) int {
 	mostExpensiveSoFar := -1
 	for _, opt := range options {
 		if !PlayerWins(opt.EquippedChar, boss) && opt.Spent > mostExpensiveSoFar {

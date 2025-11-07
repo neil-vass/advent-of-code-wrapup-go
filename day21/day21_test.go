@@ -48,7 +48,7 @@ func TestShopping(t *testing.T) {
 	player := Character{HP: 1, Damage: 0, Armour: 0}
 	got := LetsGoShopping(player, fakeShop(), fakeShoppingPlan())
 
-	want := ShoppingOptions{
+	want := []ShoppingOption{
 		{Spent: 8, EquippedChar: Character{1, 4, 0}},
 		{Spent: 21, EquippedChar: Character{1, 4, 1}},
 		{Spent: 10, EquippedChar: Character{1, 5, 0}},
@@ -57,7 +57,7 @@ func TestShopping(t *testing.T) {
 
 	// Order got and want for comparison.
 	// This works because every entry has a different Spent.
-	less := func(a, b Foo) bool { return a.Spent < b.Spent }
+	less := func(a, b ShoppingOption) bool { return a.Spent < b.Spent }
 
 	diff := cmp.Diff(want, got, cmpopts.SortSlices(less))
 	if diff != "" {
