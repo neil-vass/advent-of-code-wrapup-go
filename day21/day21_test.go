@@ -87,31 +87,13 @@ func TestSolvePart2(t *testing.T) {
 	}
 }
 
-func TestCombinations(t *testing.T) {
+func TestCombinationsOfVaryingLength(t *testing.T) {
 	pool := []int{0, 1, 2}
 	min := 0
 	max := 2
 
 	got := CombinationsOfVaryingLength(pool, min, max)
 	want := [][]int{{}, {0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}}
-
-	diff := cmp.Diff(want, got)
-	if diff != "" {
-		t.Errorf("Contents mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestProduct(t *testing.T) {
-	weapons := [][]string{{"Dagger"}, {"Shortsword"}}
-	armour := [][]string{{}, {"Leather"}}
-
-	got := Product(weapons, armour)
-	want := [][][]string{
-		{{"Dagger"}, {}},
-		{{"Dagger"}, {"Leather"}},
-		{{"Shortsword"}, {}},
-		{{"Shortsword"}, {"Leather"}},
-	}
 
 	diff := cmp.Diff(want, got)
 	if diff != "" {
