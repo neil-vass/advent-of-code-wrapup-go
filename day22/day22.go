@@ -33,6 +33,7 @@ type Game struct {
 	CheapestDamage float64
 }
 
+// TODO: Currently player just gets to keep firing spells, boss never gets a turn.
 func (g Game) Neighbours(node GameState) []graph.NodeCost[GameState] {
 	neighbours := []graph.NodeCost[GameState]{}
 	for name, spell := range g.Spellbook {
