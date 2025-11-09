@@ -1,5 +1,11 @@
 package main
 
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
+
 // I think the longest we can survive is 50 rounds:
 // Boss always does at least 1 damage, we have 50 HP.
 // If we have both healing (2) and armour (7) on every round,
@@ -22,5 +28,47 @@ package main
 // Our goal is boss at zero HP
 // Our cost to minimize is mana points
 // Our heuristic (best case from here to there) is boss's remaining HP * 9.61.
-// Our "neighbours" (possible next steps) are the spells we have mana for, 
+// Our "neighbours" (possible next steps) are the spells we have mana for,
 // as long as we have HP. If we die or can't afford spells this route is a dead end.
+
+func TestSpellcasting(t *testing.T) {
+	spellbook := Spellbook{
+		"Magic Missile": {Cost: 53, Cast: MagicMissile},
+	}
+
+	state := GameState{
+		Player: Player{HP: 50, Armour: 0, Mana: 500},
+		Boss:   Boss{HP: 16, Damage: 10},
+	}
+
+	got := spellbook["Magic Missile"].Cast(state)
+
+	want := GameState{
+		Player: Player{HP: 50, Armour: 0, Mana: 447},
+		Boss:   Boss{HP: 12, Damage: 10},
+	}
+
+	diff := cmp.Diff(want, got)
+	if diff != "" {
+		t.Errorf("Contents mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSolvePart1(t *testing.T) {
+	game := Game{
+		Spellbook: Spellbook{
+			"Magic Missile": {Cost: 53, Cast: MagicMissile},
+		},
+		InitialState: GameState{
+			Player: Player{HP: 50, Armour: 0, Mana: 500},
+			Boss:   Boss{HP: 16, Damage: 10},
+		},
+		CheapestDamage: 13.25,
+	}
+
+	got := SolvePart1(game)
+	want := 53 * 4 // Cast Magic Missile 4 times and win!
+	if got != want {
+		t.Errorf("SolvePart1()=%v, want %v", got, want)
+	}
+}
