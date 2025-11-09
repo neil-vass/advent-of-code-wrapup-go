@@ -9,7 +9,7 @@ func New[T any]() PriorityQueue[T] {
 	return PriorityQueue[T]{&q}
 }
 
-func (pq PriorityQueue[T]) Push(value T, priority int) {
+func (pq PriorityQueue[T]) Push(value T, priority float64) {
 	heap.Push(pq.q, &internalItem[T]{value, priority})
 }
 
@@ -32,7 +32,7 @@ func (pq PriorityQueue[T]) IsEmpty() bool {
 
 type internalItem[T any] struct {
 	value    T
-	priority int
+	priority float64
 }
 
 type internalQueue[T any] []*internalItem[T]
