@@ -1,6 +1,8 @@
 package main
 
-import "github.com/neil-vass/advent-of-code-2015-go/shared/graph"
+import (
+	"github.com/neil-vass/advent-of-code-2015-go/shared/graph"
+)
 
 type Spell struct {
 	Cost     int
@@ -25,8 +27,9 @@ type Boss struct{ HP, Damage int }
 type ActiveSpells map[string]int
 
 type GameState struct {
-	Player Player
-	Boss   Boss
+	Player       Player
+	Boss         Boss
+	ActiveSpells ActiveSpells
 }
 
 type SpellFn func(state GameState) GameState
@@ -37,7 +40,7 @@ func MagicMissile(state GameState) GameState {
 }
 
 func Shield(state GameState) GameState {
-	state.Player.Mana -= 113
+	state.Player.Armour = 7
 	return state
 }
 

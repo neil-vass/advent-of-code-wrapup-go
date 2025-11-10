@@ -1,6 +1,10 @@
 package graph
 
-import "github.com/neil-vass/advent-of-code-2015-go/shared/priorityqueue"
+import (
+	"encoding/json"
+
+	"github.com/neil-vass/advent-of-code-2015-go/shared/priorityqueue"
+)
 
 type NodeCost[TNode any] struct {
 	Node TNode
@@ -8,7 +12,7 @@ type NodeCost[TNode any] struct {
 }
 
 // Graph objects passed to A* search need these methods.
-type GraphWithCosts[TNode comparable] interface {
+type GraphWithCosts[TNode any] interface {
 	// Nodes you can get to in one step, along with cost to move there.
 	Neighbours(node TNode) []NodeCost[TNode]
 
@@ -28,32 +32,35 @@ type GraphWithCosts[TNode comparable] interface {
 	GoalReached(candidate TNode) bool
 }
 
-func A_StarSearch[TNode comparable](g GraphWithCosts[TNode], start TNode) (goalFound bool, cost int) {
+func A_StarSearch[TNode any](g GraphWithCosts[TNode], start TNode) (goalFound bool, cost int) {
 	frontier := priorityqueue.New[TNode]()
-	visited := map[TNode]struct {
+	frontier.Push(start, 0)
+
+	savedStart := save(start)
+	visited := map[string]struct {
 		costSoFar int
 		cameFrom  TNode
-	}{start: {costSoFar: 0}}
-
-	frontier.Push(start, 0)
+	}{savedStart: {costSoFar: 0}}
 
 	for !frontier.IsEmpty() {
 		current := frontier.Pull()
+		savedCurr := save(current)
 		if g.GoalReached(current) {
 			goalFound = true
-			cost = visited[current].costSoFar
+			cost = visited[savedCurr].costSoFar
 			return
 		}
 
 		for _, n := range g.Neighbours(current) {
-			newCost := visited[current].costSoFar + n.Cost
-			old, beenHereBefore := visited[n.Node]
+			newCost := visited[savedCurr].costSoFar + n.Cost
+			savedNeighbour := save(n.Node)
+			old, beenHereBefore := visited[savedNeighbour]
 
 			// If we haven't been here before, _or_ if we've found a cheaper way to get here
 			if !beenHereBefore || newCost < old.costSoFar {
 				priority := float64(newCost) + g.Heuristic(n.Node)
 				frontier.Push(n.Node, priority)
-				visited[n.Node] = struct {
+				visited[savedNeighbour] = struct {
 					costSoFar int
 					cameFrom  TNode
 				}{newCost, current}
@@ -64,4 +71,13 @@ func A_StarSearch[TNode comparable](g GraphWithCosts[TNode], start TNode) (goalF
 	// The end of all our exploring.
 	goalFound = false
 	return
+}
+
+func save[TNode any](node TNode) string {
+	bytesNode, err := json.Marshal(node)
+	savedNode := string(bytesNode)
+	if err != nil {
+		panic("Can't save nodes")
+	}
+	return savedNode
 }
