@@ -31,17 +31,23 @@ import (
 // Our "neighbours" (possible next steps) are the spells we have mana for,
 // as long as we have HP. If we die or can't afford spells this route is a dead end.
 
+func SimpleGameSetup() Game {
+	return Game{
+		Spellbook: Spellbook{
+			"Magic Missile": {Cost: 53, Effect: MagicMissile},
+		},
+		InitialState: GameState{
+			Player: Player{HP: 50, Armour: 0, Mana: 500},
+			Boss:   Boss{HP: 16, Damage: 10},
+		},
+		CheapestDamage: 53 / 4.0, // Magic Missile
+	}
+}
+
 func TestSpellcasting(t *testing.T) {
-	spellbook := Spellbook{
-		"Magic Missile": {Cost: 53, Cast: MagicMissile},
-	}
+	game := SimpleGameSetup()
 
-	state := GameState{
-		Player: Player{HP: 50, Armour: 0, Mana: 500},
-		Boss:   Boss{HP: 16, Damage: 10},
-	}
-
-	got := spellbook["Magic Missile"].Cast(state)
+	got := game.Spellbook.Cast("Magic Missile", game.InitialState)
 
 	want := GameState{
 		Player: Player{HP: 50, Armour: 0, Mana: 447},
@@ -55,20 +61,24 @@ func TestSpellcasting(t *testing.T) {
 }
 
 func TestSolvePart1(t *testing.T) {
-	game := Game{
-		Spellbook: Spellbook{
-			"Magic Missile": {Cost: 53, Cast: MagicMissile},
-		},
-		InitialState: GameState{
-			Player: Player{HP: 50, Armour: 0, Mana: 500},
-			Boss:   Boss{HP: 16, Damage: 10},
-		},
-		CheapestDamage: 13.25,
-	}
+	t.Run("Solve simple game", func(t *testing.T) {
+		game := SimpleGameSetup()
 
-	got := SolvePart1(game)
-	want := 53 * 4 // Cast Magic Missile 4 times and win!
-	if got != want {
-		t.Errorf("SolvePart1()=%v, want %v", got, want)
-	}
+		got := SolvePart1(game)
+		want := 53 * 4 // Cast Magic Missile 4 times and win!
+		if got != want {
+			t.Errorf("SolvePart1()=%v, want %v", got, want)
+		}
+	})
+
+	t.Run("Choose second spell when needed", func(t *testing.T) {
+		game := SimpleGameSetup()
+		game.Spellbook["Shield"] = Spell{Cost: 113, Effect: Shield, Duration: 6}
+
+		got := SolvePart1(game)
+		want := 53 * 4 // Cast Magic Missile 4 times and win!
+		if got != want {
+			t.Errorf("SolvePart1()=%v, want %v", got, want)
+		}
+	})
 }

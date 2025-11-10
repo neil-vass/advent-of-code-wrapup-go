@@ -3,11 +3,22 @@ package main
 import "github.com/neil-vass/advent-of-code-2015-go/shared/graph"
 
 type Spell struct {
-	Cost   int
-	Cast   SpellcastFn
-	Effect SpellEffectFn
+	Cost     int
+	Effect   SpellFn
+	Duration int
 }
 type Spellbook map[string]Spell
+
+func (book Spellbook) Cast(spellName string, state GameState) GameState {
+	spell := book[spellName]
+	state.Player.Mana -= spell.Cost
+	if spell.Duration == 0 {
+		state = spell.Effect(state)
+	} else {
+		// add spell name and duration to active spells
+	}
+	return state
+}
 
 type Player struct{ HP, Armour, Mana int }
 type Boss struct{ HP, Damage int }
@@ -18,12 +29,15 @@ type GameState struct {
 	Boss   Boss
 }
 
-type SpellcastFn func(state GameState) GameState
-type SpellEffectFn func(state GameState) GameState
+type SpellFn func(state GameState) GameState
 
 func MagicMissile(state GameState) GameState {
-	state.Player.Mana -= 53
 	state.Boss.HP -= 4
+	return state
+}
+
+func Shield(state GameState) GameState {
+	state.Player.Mana -= 113
 	return state
 }
 
@@ -38,7 +52,7 @@ func (g Game) Neighbours(node GameState) []graph.NodeCost[GameState] {
 	neighbours := []graph.NodeCost[GameState]{}
 	for name, spell := range g.Spellbook {
 		if spell.Cost <= node.Player.Mana {
-			newState := g.Spellbook[name].Cast(node)
+			newState := g.Spellbook[name].Effect(node)
 			n := graph.NodeCost[GameState]{Node: newState, Cost: spell.Cost}
 			neighbours = append(neighbours, n)
 		}
