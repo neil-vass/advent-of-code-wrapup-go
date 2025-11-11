@@ -50,17 +50,31 @@ type Game struct {
 	CheapestDamage float64
 }
 
-// TODO: Currently player just gets to keep firing spells, boss never gets a turn.
 func (g Game) Neighbours(node GameState) []graph.NodeCost[GameState] {
 	neighbours := []graph.NodeCost[GameState]{}
-	for name, spell := range g.Spellbook {
+	for spellName, spell := range g.Spellbook {
 		if spell.Cost <= node.Player.Mana {
-			newState := g.Spellbook[name].Effect(node)
-			n := graph.NodeCost[GameState]{Node: newState, Cost: spell.Cost}
-			neighbours = append(neighbours, n)
+			newState := g.playRound(spellName, node)
+
+			// If we haven't died, this is worth exploring.
+			if newState.Player.HP >= 0 {
+				n := graph.NodeCost[GameState]{Node: newState, Cost: spell.Cost}
+				neighbours = append(neighbours, n)
+			}
 		}
 	}
 	return neighbours
+}
+
+func (g Game) playRound(spellName string, state GameState) GameState {
+	// Player turn
+	state = g.Spellbook[spellName].Effect(state)
+
+	// Boss turn, if he's alive.
+	if state.Boss.HP > 0 {
+		state.Player.HP -= max(state.Boss.Damage-state.Player.Armour, 1)
+	}
+	return state
 }
 
 func (g Game) Heuristic(from GameState) float64 {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -69,6 +70,20 @@ func TestSolvePart1(t *testing.T) {
 		if got != want {
 			t.Errorf("SolvePart1()=%v, want %v", got, want)
 		}
+	})
+
+	t.Run("Recognize unwinnable game", func(t *testing.T) {
+		defer func() {
+			got := fmt.Sprint(recover())
+			want := "No route to goal!"
+			if got != want {
+				t.Errorf("Wrong panic reason: got %#v, want %#v", got, want)
+			}
+		}()
+
+		game := SimpleGameSetup()
+		game.InitialState.Boss.Damage = 20 // Boss will win
+		SolvePart1(game)
 	})
 
 	t.Run("Choose second spell when needed", func(t *testing.T) {
