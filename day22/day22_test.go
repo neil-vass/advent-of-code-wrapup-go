@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/neil-vass/advent-of-code-2015-go/shared/assert"
 )
 
 // I think the longest we can survive is 50 rounds:
@@ -38,8 +39,9 @@ func SimpleGameSetup() Game {
 			"Magic Missile": {Cost: 53, Effect: MagicMissile},
 		},
 		InitialState: GameState{
-			Player: Player{HP: 50, Armour: 0, Mana: 500},
-			Boss:   Boss{HP: 16, Damage: 10},
+			Player:       Player{HP: 14, Armour: 0, Mana: 500},
+			Boss:         Boss{HP: 12, Damage: 1},
+			ActiveSpells: ActiveSpells{},
 		},
 		CheapestDamage: 53 / 4.0, // Magic Missile
 	}
@@ -51,8 +53,9 @@ func TestSpellcasting(t *testing.T) {
 	got := game.Spellbook.Cast("Magic Missile", game.InitialState)
 
 	want := GameState{
-		Player: Player{HP: 50, Armour: 0, Mana: 447},
-		Boss:   Boss{HP: 12, Damage: 10},
+		Player:       Player{HP: 14, Armour: 0, Mana: 447},
+		Boss:         Boss{HP: 8, Damage: 1},
+		ActiveSpells: ActiveSpells{},
 	}
 
 	diff := cmp.Diff(want, got)
@@ -61,12 +64,37 @@ func TestSpellcasting(t *testing.T) {
 	}
 }
 
+func TestCanWinManually(t *testing.T) {
+	game := SimpleGameSetup()
+	game.InitialState.Boss.Damage = 7 // Strong boss, but a shield will save you
+	game.Spellbook["Shield"] = Spell{Cost: 113, Effect: Shield, Duration: 6}
+
+	valid, state := game.PlayRound("Shield", game.InitialState)
+	assert.Equal(t, valid, true)
+	assert.Equal(t, state.Player.HP, 13) // Just 1HP damage for 3 rounds (6 turns)
+
+	valid, state = game.PlayRound("Magic Missile", state)
+	assert.Equal(t, valid, true)
+	assert.Equal(t, state.Player.HP, 12)
+	assert.Equal(t, state.Boss.HP, 8)
+
+	valid, state = game.PlayRound("Magic Missile", state)
+	assert.Equal(t, valid, true)
+	assert.Equal(t, state.Player.HP, 11)
+	assert.Equal(t, state.Boss.HP, 4)
+
+	valid, state = game.PlayRound("Magic Missile", state)
+	assert.Equal(t, valid, true)
+	assert.Equal(t, state.Player.HP, 11) // Boss dies on player's turn, no damage done
+	assert.Equal(t, state.Boss.HP, 0)
+}
+
 func TestSolvePart1(t *testing.T) {
 	t.Run("Solve simple game", func(t *testing.T) {
 		game := SimpleGameSetup()
 
 		got := SolvePart1(game)
-		want := 53 * 4 // Cast Magic Missile 4 times and win!
+		want := 53 * 3 // Cast Magic Missile 3 times and win!
 		if got != want {
 			t.Errorf("SolvePart1()=%v, want %v", got, want)
 		}
@@ -82,16 +110,17 @@ func TestSolvePart1(t *testing.T) {
 		}()
 
 		game := SimpleGameSetup()
-		game.InitialState.Boss.Damage = 20 // Boss will win
+		game.InitialState.Boss.Damage = 7 // Strong boss will win
 		SolvePart1(game)
 	})
 
 	t.Run("Choose second spell when needed", func(t *testing.T) {
 		game := SimpleGameSetup()
+		game.InitialState.Boss.Damage = 7 // Strong boss, but a shield will save you
 		game.Spellbook["Shield"] = Spell{Cost: 113, Effect: Shield, Duration: 6}
 
 		got := SolvePart1(game)
-		want := 53 * 4 // Cast Magic Missile 4 times and win!
+		want := 113 + 53*3 // Shields up, cast Magic Missile 3 times and win!
 		if got != want {
 			t.Errorf("SolvePart1()=%v, want %v", got, want)
 		}

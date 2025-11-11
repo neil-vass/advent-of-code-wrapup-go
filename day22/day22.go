@@ -1,6 +1,8 @@
 package main
 
 import (
+	"maps"
+
 	"github.com/neil-vass/advent-of-code-2015-go/shared/graph"
 )
 
@@ -17,7 +19,7 @@ func (book Spellbook) Cast(spellName string, state GameState) GameState {
 	if spell.Duration == 0 {
 		state = spell.Effect(state)
 	} else {
-		// add spell name and duration to active spells
+		state.ActiveSpells[spellName] = spell.Duration
 	}
 	return state
 }
@@ -53,26 +55,55 @@ type Game struct {
 func (g Game) Neighbours(node GameState) []graph.NodeCost[GameState] {
 	neighbours := []graph.NodeCost[GameState]{}
 	for spellName, spell := range g.Spellbook {
-		if spell.Cost <= node.Player.Mana {
-			newState := g.playRound(spellName, node)
+		state := GameState{
+			Player:       node.Player,
+			Boss:         node.Boss,
+			ActiveSpells: maps.Clone(node.ActiveSpells),
+		}
 
-			// If we haven't died, this is worth exploring.
-			if newState.Player.HP >= 0 {
-				n := graph.NodeCost[GameState]{Node: newState, Cost: spell.Cost}
-				neighbours = append(neighbours, n)
-			}
+		valid, newState := g.PlayRound(spellName, state)
+		if valid {
+			n := graph.NodeCost[GameState]{Node: newState, Cost: spell.Cost}
+			neighbours = append(neighbours, n)
 		}
 	}
 	return neighbours
 }
 
-func (g Game) playRound(spellName string, state GameState) GameState {
-	// Player turn
-	state = g.Spellbook[spellName].Effect(state)
+// Returns (bool valid, newState GameState)
+// valid: False if named spell couldn't be cast, or if player dies this round.
+// newState: a copy of the given state, updated after the player and boss actions.
+func (g Game) PlayRound(spellName string, state GameState) (bool, GameState) {
+
+	spellTooExpensive := g.Spellbook[spellName].Cost > state.Player.Mana
+	_, SpellAlreadyActive := state.ActiveSpells[spellName]
+	if spellTooExpensive || SpellAlreadyActive {
+		return false, state
+	}
+
+	// Player turn.
+	state = g.ApplyEffects(state)
+	state = g.Spellbook.Cast(spellName, state)
 
 	// Boss turn, if he's alive.
 	if state.Boss.HP > 0 {
+		state = g.ApplyEffects(state)
 		state.Player.HP -= max(state.Boss.Damage-state.Player.Armour, 1)
+	}
+
+	// If player died we don't consider this a valid move, like the king in chess.
+	return state.Player.HP > 0, state
+}
+
+// Apply effects of any long-running spells, decrementing their timers.
+func (g Game) ApplyEffects(state GameState) GameState {
+	for spellName, timer := range state.ActiveSpells {
+		state = g.Spellbook[spellName].Effect(state)
+		if timer > 1 {
+			state.ActiveSpells[spellName] -= 1
+		} else {
+			delete(state.ActiveSpells, spellName)
+		}
 	}
 	return state
 }
