@@ -32,12 +32,15 @@ func main() {
 			ActiveSpells: ActiveSpells{},
 		},
 		CheapestDamage: 173 / 18.0, // Poison's mana cost per HP
+		HardMode:       false,
 	}
 
-	fmt.Printf("Part 1: %v\n", SolvePart1(game))
+	fmt.Printf("Part 1: %v\n", Solve(game))
+	game.HardMode = true
+	fmt.Printf("Part 2: %v\n", Solve(game))
 }
 
-func SolvePart1(game Game) int {
+func Solve(game Game) int {
 	goalFound, cost := graph.A_StarSearch(game, game.InitialState)
 	if !goalFound {
 		panic("No route to goal!")
@@ -105,6 +108,7 @@ type Game struct {
 	Spellbook      Spellbook
 	InitialState   GameState
 	CheapestDamage float64
+	HardMode       bool
 }
 
 func (g Game) Neighbours(node GameState) []graph.NodeCost[GameState] {
@@ -137,6 +141,15 @@ func (g Game) GoalReached(candidate GameState) bool {
 // valid: False if named spell couldn't be cast, or if player dies this round.
 // newState: a copy of the given state, updated after the player and boss actions.
 func (g Game) PlayRound(spellName string, state GameState) (bool, GameState) {
+
+	// Rule from part 2
+	if g.HardMode {
+		state.Player.HP -= 1
+		if state.Player.HP <= 0 {
+			return false, state
+		}
+	}
+
 	state = g.ApplyEffects(state)
 
 	spellTooExpensive := g.Spellbook[spellName].Cost > state.Player.Mana

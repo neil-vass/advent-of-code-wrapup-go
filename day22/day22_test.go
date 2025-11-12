@@ -93,7 +93,7 @@ func TestSolvePart1(t *testing.T) {
 	t.Run("Solve simple game", func(t *testing.T) {
 		game := SimpleGameSetup()
 
-		got := SolvePart1(game)
+		got := Solve(game)
 		want := 53 * 3 // Cast Magic Missile 3 times and win!
 		if got != want {
 			t.Errorf("SolvePart1()=%v, want %v", got, want)
@@ -111,7 +111,7 @@ func TestSolvePart1(t *testing.T) {
 
 		game := SimpleGameSetup()
 		game.InitialState.Boss.Damage = 7 // Strong boss will win
-		SolvePart1(game)
+		Solve(game)
 	})
 
 	t.Run("Choose second spell when needed", func(t *testing.T) {
@@ -119,7 +119,7 @@ func TestSolvePart1(t *testing.T) {
 		game.InitialState.Boss.Damage = 7 // Strong boss, but a shield will save you
 		game.Spellbook["Shield"] = Spell{Cost: 113, Effect: Shield, Duration: 6}
 
-		got := SolvePart1(game)
+		got := Solve(game)
 		want := 113 + 53*3 // Shields up, cast Magic Missile 3 times and win!
 		if got != want {
 			t.Errorf("SolvePart1()=%v, want %v", got, want)
