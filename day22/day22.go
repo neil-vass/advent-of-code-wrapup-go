@@ -1,10 +1,49 @@
 package main
 
 import (
+	_ "embed"
+	"fmt"
 	"maps"
+	"regexp"
 
 	"github.com/neil-vass/advent-of-code-2015-go/shared/graph"
+	"github.com/neil-vass/advent-of-code-2015-go/shared/input"
 )
+
+//go:embed input.txt
+var puzzleData string
+
+func main() {
+	boss := Boss{}
+	bossRe := regexp.MustCompile(`^Hit Points: (\d+)\nDamage: (\d+)\n$`)
+	input.Parse(bossRe, puzzleData, &boss.HP, &boss.Damage)
+
+	game := Game{
+		Spellbook: Spellbook{
+			"Magic Missile": {Cost: 53, Effect: MagicMissile},
+			"Drain":         {Cost: 73, Effect: Drain},
+			"Shield":        {Cost: 113, Effect: Shield, Duration: 6},
+			"Poison":        {Cost: 173, Effect: Poison, Duration: 6},
+			"Recharge":      {Cost: 229, Effect: Recharge, Duration: 5},
+		},
+		InitialState: GameState{
+			Player:       Player{HP: 50, Armour: 0, Mana: 500},
+			Boss:         boss,
+			ActiveSpells: ActiveSpells{},
+		},
+		CheapestDamage: 173 / 18.0, // Poison's mana cost per HP
+	}
+
+	fmt.Printf("Part 1: %v\n", SolvePart1(game))
+}
+
+func SolvePart1(game Game) int {
+	goalFound, cost := graph.A_StarSearch(game, game.InitialState)
+	if !goalFound {
+		panic("No route to goal!")
+	}
+	return cost
+}
 
 type Spell struct {
 	Cost     int
@@ -41,8 +80,24 @@ func MagicMissile(state GameState) GameState {
 	return state
 }
 
+func Drain(state GameState) GameState {
+	state.Boss.HP -= 2
+	state.Player.HP += 2
+	return state
+}
+
 func Shield(state GameState) GameState {
 	state.Player.Armour = 7
+	return state
+}
+
+func Poison(state GameState) GameState {
+	state.Boss.HP -= 3
+	return state
+}
+
+func Recharge(state GameState) GameState {
+	state.Player.Mana += 101
 	return state
 }
 
@@ -70,10 +125,19 @@ func (g Game) Neighbours(node GameState) []graph.NodeCost[GameState] {
 	return neighbours
 }
 
+func (g Game) Heuristic(from GameState) float64 {
+	return float64(from.Boss.HP) * g.CheapestDamage
+}
+
+func (g Game) GoalReached(candidate GameState) bool {
+	return candidate.Boss.HP <= 0
+}
+
 // Returns (bool valid, newState GameState)
 // valid: False if named spell couldn't be cast, or if player dies this round.
 // newState: a copy of the given state, updated after the player and boss actions.
 func (g Game) PlayRound(spellName string, state GameState) (bool, GameState) {
+	state = g.ApplyEffects(state)
 
 	spellTooExpensive := g.Spellbook[spellName].Cost > state.Player.Mana
 	_, SpellAlreadyActive := state.ActiveSpells[spellName]
@@ -82,12 +146,11 @@ func (g Game) PlayRound(spellName string, state GameState) (bool, GameState) {
 	}
 
 	// Player turn.
-	state = g.ApplyEffects(state)
 	state = g.Spellbook.Cast(spellName, state)
 
 	// Boss turn, if he's alive.
+	state = g.ApplyEffects(state)
 	if state.Boss.HP > 0 {
-		state = g.ApplyEffects(state)
 		state.Player.HP -= max(state.Boss.Damage-state.Player.Armour, 1)
 	}
 
@@ -106,20 +169,4 @@ func (g Game) ApplyEffects(state GameState) GameState {
 		}
 	}
 	return state
-}
-
-func (g Game) Heuristic(from GameState) float64 {
-	return float64(from.Boss.HP) * g.CheapestDamage
-}
-
-func (g Game) GoalReached(candidate GameState) bool {
-	return candidate.Boss.HP <= 0
-}
-
-func SolvePart1(game Game) int {
-	goalFound, cost := graph.A_StarSearch(game, game.InitialState)
-	if !goalFound {
-		panic("No route to goal!")
-	}
-	return cost
 }
