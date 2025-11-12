@@ -160,6 +160,9 @@ func (g Game) PlayRound(spellName string, state GameState) (bool, GameState) {
 
 // Apply effects of any long-running spells, decrementing their timers.
 func (g Game) ApplyEffects(state GameState) GameState {
+	// Wear off any ongoing buffs - they'll reapply if active spells are still up.
+	state.Player.Armour = 0
+
 	for spellName, timer := range state.ActiveSpells {
 		state = g.Spellbook[spellName].Effect(state)
 		if timer > 1 {

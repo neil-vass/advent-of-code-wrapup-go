@@ -2,6 +2,8 @@ package graph
 
 import (
 	"encoding/json"
+	"fmt"
+	"slices"
 
 	"github.com/neil-vass/advent-of-code-2015-go/shared/priorityqueue"
 )
@@ -39,13 +41,36 @@ func A_StarSearch[TNode any](g GraphWithCosts[TNode], start TNode) (goalFound bo
 	savedStart := save(start)
 	visited := map[string]struct {
 		costSoFar int
-		cameFrom  TNode
+		cameFrom  string
 	}{savedStart: {costSoFar: 0}}
 
 	for !frontier.IsEmpty() {
 		current := frontier.Pull()
 		savedCurr := save(current)
 		if g.GoalReached(current) {
+
+			// Debugging
+			path := []struct {
+				costSoFar int
+				state     string
+			}{}
+
+			for step := savedCurr; step != ""; step = visited[step].cameFrom {
+				x := struct {
+					costSoFar int
+					state     string
+				}{visited[step].costSoFar, step}
+				path = append(path, x)
+			}
+
+			slices.Reverse(path)
+
+			for _, step := range path {
+				fmt.Println(step)
+			}
+
+			// End debugging
+
 			goalFound = true
 			cost = visited[savedCurr].costSoFar
 			return
@@ -62,8 +87,8 @@ func A_StarSearch[TNode any](g GraphWithCosts[TNode], start TNode) (goalFound bo
 				frontier.Push(n.Node, priority)
 				visited[savedNeighbour] = struct {
 					costSoFar int
-					cameFrom  TNode
-				}{newCost, current}
+					cameFrom  string
+				}{newCost, savedCurr}
 			}
 		}
 	}
