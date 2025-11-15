@@ -81,10 +81,7 @@ func gameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 			P2:         state.P2,
 			P1TurnDone: true,
 		}
-		p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(updatedState)
-		p1Wins += p1WinsOnThisPath
-		p2Wins += p2WinsOnThisPath
-		return
+		return GameOutcomes(updatedState)
 	}
 
 	// If you get here: we have a full set of rolls, and P1's had a turn.
@@ -99,10 +96,7 @@ func gameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 		P1: state.P1,
 		P2: updatedP2,
 	}
-	p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(updatedState)
-	p1Wins += p1WinsOnThisPath
-	p2Wins += p2WinsOnThisPath
-	return
+	return GameOutcomes(updatedState)
 }
 
 func moveAndScore(player Player, roll int) Player {
