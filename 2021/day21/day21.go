@@ -53,39 +53,16 @@ func GameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 
 func gameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 
-	if state.Roll1 == 0 {
-
-		for _, roll := range dice {
-			state.Roll1 = roll
-			p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(state)
-			p1Wins += p1WinsOnThisPath
-			p2Wins += p2WinsOnThisPath
+	for _, slot := range [](*int){&state.Roll1, &state.Roll2, &state.Roll3} {
+		if *slot == 0 {
+			for _, roll := range dice {
+				*slot = roll
+				p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(state)
+				p1Wins += p1WinsOnThisPath
+				p2Wins += p2WinsOnThisPath
+			}
+			return
 		}
-		return
-	}
-
-	if state.Roll2 == 0 {
-		for _, roll := range dice {
-			state.Roll2 = roll
-			p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(state)
-			p1Wins += p1WinsOnThisPath
-			p2Wins += p2WinsOnThisPath
-		}
-		return
-	}
-
-	if state.Roll3 == 0 {
-		for _, roll := range dice {
-			state.Roll3 = roll
-			p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(state)
-			p1Wins += p1WinsOnThisPath
-			p2Wins += p2WinsOnThisPath
-			cache[state] = struct {
-				p1Wins uint64
-				p2Wins uint64
-			}{p1WinsOnThisPath, p2WinsOnThisPath}
-		}
-		return
 	}
 
 	totalRoll := state.Roll1 + state.Roll2 + state.Roll3
