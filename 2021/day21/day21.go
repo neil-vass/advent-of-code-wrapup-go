@@ -20,7 +20,7 @@ func main() {
 	}
 	state.P1.Needs = 21
 	state.P2.Needs = 21
-	
+
 	p1Wins, p2Wins := GameOutcomes(state)
 	winner := max(p1Wins, p2Wins)
 	fmt.Printf("Part 2: %v\n", winner)
@@ -43,16 +43,23 @@ func GameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 		return res.p1Wins, res.p2Wins
 	}
 
+	p1Wins, p2Wins = gameOutcomes(state)
+	cache[state] = struct {
+		p1Wins uint64
+		p2Wins uint64
+	}{p1Wins, p2Wins}
+	return
+}
+
+func gameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
+
 	if state.Roll1 == 0 {
+
 		for _, roll := range dice {
 			state.Roll1 = roll
 			p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(state)
 			p1Wins += p1WinsOnThisPath
 			p2Wins += p2WinsOnThisPath
-			cache[state] = struct {
-				p1Wins uint64
-				p2Wins uint64
-			}{p1WinsOnThisPath, p2WinsOnThisPath}
 		}
 		return
 	}
@@ -63,10 +70,6 @@ func GameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 			p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(state)
 			p1Wins += p1WinsOnThisPath
 			p2Wins += p2WinsOnThisPath
-			cache[state] = struct {
-				p1Wins uint64
-				p2Wins uint64
-			}{p1WinsOnThisPath, p2WinsOnThisPath}
 		}
 		return
 	}
@@ -104,10 +107,6 @@ func GameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 		p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(updatedState)
 		p1Wins += p1WinsOnThisPath
 		p2Wins += p2WinsOnThisPath
-		cache[state] = struct {
-			p1Wins uint64
-			p2Wins uint64
-		}{p1WinsOnThisPath, p2WinsOnThisPath}
 		return
 	}
 
@@ -126,10 +125,6 @@ func GameOutcomes(state GameState) (p1Wins, p2Wins uint64) {
 	p1WinsOnThisPath, p2WinsOnThisPath := GameOutcomes(updatedState)
 	p1Wins += p1WinsOnThisPath
 	p2Wins += p2WinsOnThisPath
-	cache[state] = struct {
-		p1Wins uint64
-		p2Wins uint64
-	}{p1WinsOnThisPath, p2WinsOnThisPath}
 	return
 }
 
