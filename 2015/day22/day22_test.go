@@ -8,10 +8,10 @@ import (
 	"github.com/neil-vass/advent-of-code-2015-go/shared/assert"
 )
 
-// I think the longest we can survive is 50 rounds:
+// I think this fight could go on indefinitely:
 // Boss always does at least 1 damage, we have 50 HP.
 // If we have both healing (2) and armour (7) on every round,
-// we'll be in that best case scenario; otherwie, less than 50 rounds.
+// we'd survive even longer than 50.
 // Generating all the "what might I cast in each of 50 rounds" posiblities
 // and inspecting them is a huge task: 5^50 is a 35-digit numnber.
 
